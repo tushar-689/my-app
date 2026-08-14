@@ -29,6 +29,9 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~57.0.1",
+    "prettier": "^3.9.6",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -38,8 +41,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "prettier --write src package.json app.json eas.json tsconfig.json .prettierrc.json eslint.config.js",
+    "format:check": "prettier --check src package.json app.json eas.json tsconfig.json .prettierrc.json eslint.config.js"
   },
   "private": true
 }
