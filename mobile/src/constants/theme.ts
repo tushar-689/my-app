@@ -1,65 +1,67 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import '@/global.css';
-
 import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    background: '#FFFDF0',
+    surface: '#FFFCEB',
+    ink: '#171717',
+    muted: '#6F7068',
+    line: '#20211D',
+    green: '#72D62B',
+    greenDark: '#4E9D1C',
+    purple: '#A66CF2',
+    yellow: '#FFD23F',
+    orange: '#FF9F43',
+    pink: '#F28BC8',
+    blue: '#8ED8E8',
+    white: '#FFFFFF',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    background: '#191A16',
+    surface: '#25261F',
+    ink: '#FFFDF0',
+    muted: '#B8B8A9',
+    line: '#FFFDF0',
+    green: '#72D62B',
+    greenDark: '#A2E878',
+    purple: '#B98BF7',
+    yellow: '#FFD23F',
+    orange: '#FFAA59',
+    pink: '#F49CD0',
+    blue: '#8ED8E8',
+    white: '#FFFFFF',
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type Theme = (typeof Colors)['light'];
+export type ThemeColor = keyof Theme;
 
 export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
+  ios: { sans: 'Avenir Next', display: 'Avenir Next', mono: 'Menlo' },
+  android: {
+    sans: 'sans-serif',
+    display: 'sans-serif-condensed',
     mono: 'monospace',
   },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
+  default: { sans: 'sans-serif', display: 'sans-serif', mono: 'monospace' },
 });
 
 export const Spacing = {
-  half: 2,
   one: 4,
   two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
+  three: 12,
+  four: 16,
+  five: 20,
+  six: 24,
+  seven: 32,
+  eight: 40,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export const Radius = {
+  small: 10,
+  medium: 16,
+  large: 24,
+  pill: 999,
+} as const;
+
+export const MaxContentWidth = 520;

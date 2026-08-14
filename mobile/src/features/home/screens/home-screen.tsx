@@ -1,98 +1,108 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
+import { AppButton } from '@/components/ui/app-button';
+import { AppCard } from '@/components/ui/app-card';
+import { AppScreen } from '@/components/ui/app-screen';
+import { ProgressBar } from '@/components/ui/progress-bar';
 import { ThemedText } from '@/components/ui/themed-text';
-import { ThemedView } from '@/components/ui/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+import { Colors, Radius, Spacing } from '@/constants/theme';
 
 export function HomeScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
+    <AppScreen>
+      <View style={styles.top}>
+        <View>
+          <ThemedText type="label" themeColor="muted">
+            MONDAY, 12 MAY
           </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
+          <ThemedText type="title">Hey Tushar 👋</ThemedText>
+          <ThemedText themeColor="muted">
+            Let&apos;s make today count.
+          </ThemedText>
+        </View>
+        <View style={styles.avatar}>
+          <ThemedText type="title">T</ThemedText>
+        </View>
+      </View>
+      <AppCard color="green" style={styles.goal}>
+        <View style={styles.goalText}>
+          <ThemedText type="label">DAILY GOAL</ThemedText>
+          <ThemedText type="display">3 / 5</ThemedText>
+          <ThemedText type="caption">Mocks completed</ThemedText>
+        </View>
+        <ThemedText type="display">↗</ThemedText>
+      </AppCard>
+      <AppCard color="yellow" style={styles.streak}>
+        <View>
+          <ThemedText type="label">STREAK</ThemedText>
+          <ThemedText type="display">22</ThemedText>
+          <ThemedText type="caption">days — keep it up!</ThemedText>
+        </View>
+        <ThemedText type="display">♨</ThemedText>
+      </AppCard>
+      <AppCard color="purple" style={styles.progress}>
+        <ThemedText type="label">OVERALL PROGRESS</ThemedText>
+        <View style={styles.progressRow}>
+          <ThemedText type="display">68%</ThemedText>
+          <ThemedText type="caption">
+            You&apos;re ahead of 68% of test takers.
+          </ThemedText>
+        </View>
+        <ProgressBar value={68} color={Colors.light.ink} />
+      </AppCard>
+      <View style={styles.section}>
+        <ThemedText type="title">Ready to practice?</ThemedText>
+        <ThemedText themeColor="muted" style={styles.subtitle}>
+          A focused 10-minute session can move you forward.
         </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+        <AppButton
+          label="Start Practice"
+          variant="dark"
+          onPress={() => router.push('/practice' as never)}
+        />
+      </View>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
+  top: {
     flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: Spacing.five,
     gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
   },
-  heroSection: {
+  avatar: {
+    width: 46,
+    height: 46,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.light.purple,
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    borderWidth: 1.5,
+    borderColor: Colors.light.line,
   },
-  title: {
-    textAlign: 'center',
+  goal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 138,
+    marginBottom: Spacing.three,
   },
-  code: {
-    textTransform: 'uppercase',
+  goalText: { gap: Spacing.one },
+  streak: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 120,
+    marginBottom: Spacing.three,
   },
-  stepContainer: {
+  progress: { minHeight: 145, gap: Spacing.three },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
   },
+  section: { gap: Spacing.three, marginTop: Spacing.seven },
+  subtitle: { marginTop: -Spacing.two },
 });
