@@ -2,6 +2,14 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import { FigureSequencesScreen } from '@/features/practice/screens/figure-sequences-screen';
 
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn().mockResolvedValue(null),
+    setItem: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 jest.mock('expo-router', () => ({
   router: { replace: jest.fn() },
 }));
@@ -43,7 +51,7 @@ describe('FigureSequencesScreen', () => {
     }
     await fireEvent.press(view.getByText('View Results'));
     expect(mockRouter.replace).toHaveBeenCalledWith(
-      '/practice/figure-sequences/results?total=10&correct=10&incorrect=0&skipped=0',
+      '/practice/figure-sequences/results?module=Figure%20Sequences&total=10&correct=10&incorrect=0&skipped=0&percentage=100',
     );
   });
 });

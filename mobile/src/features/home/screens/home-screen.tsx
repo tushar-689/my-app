@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/app-button';
@@ -7,8 +8,24 @@ import { AppScreen } from '@/components/ui/app-screen';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import {
+  getPracticeSummary,
+  loadPracticeHistory,
+  type PracticeSession,
+} from '@/features/practice/history/practice-history';
 
 export function HomeScreen() {
+  const [latest, setLatest] = useState<PracticeSession>();
+  const [sessionCount, setSessionCount] = useState(0);
+
+  useEffect(() => {
+    loadPracticeHistory().then((history) => {
+      const summary = getPracticeSummary(history);
+      setLatest(summary.latest);
+      setSessionCount(summary.totalSessions);
+    });
+  }, []);
+
   return (
     <AppScreen>
       <View style={styles.top}>
@@ -44,9 +61,13 @@ export function HomeScreen() {
       <AppCard color="purple" style={styles.progress}>
         <ThemedText type="label">OVERALL PROGRESS</ThemedText>
         <View style={styles.progressRow}>
-          <ThemedText type="display">68%</ThemedText>
+          <ThemedText type="display">{latest?.percentage ?? 0}%</ThemedText>
           <ThemedText type="caption">
-            You&apos;re ahead of 68% of test takers.
+            {latest
+              ? sessionCount +
+                ' completed session' +
+                (sessionCount === 1 ? '.' : 's.')
+              : 'Complete a session to see your progress.'}
           </ThemedText>
         </View>
         <ProgressBar value={68} color={Colors.light.ink} />

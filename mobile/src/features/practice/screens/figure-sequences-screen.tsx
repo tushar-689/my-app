@@ -10,6 +10,7 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { FigureRenderer } from '../figure-sequences/figure-renderer';
 import { generateQuestion } from '../figure-sequences/generator';
+import { savePracticeSession } from '../history/practice-history';
 import {
   formatRemaining,
   QUESTION_DURATION_MS,
@@ -35,12 +36,37 @@ export function FigureSequencesScreen() {
   const finalizedRef = useRef(false);
   const statusRef = useRef(status);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionStartedAtRef = useRef(0);
+  const completedRef = useRef(false);
   const question = useMemo(() => generateQuestion(7100 + index, 1), [index]);
 
-  const advance = (nextCounts: SessionCounts) => {
+  const advance = async (nextCounts: SessionCounts) => {
     if (index === SESSION_SIZE - 1) {
+      if (completedRef.current) return;
+      completedRef.current = true;
+      const percentage = Math.round((nextCounts.correct / SESSION_SIZE) * 100);
+      await savePracticeSession({
+        id: 'figure-sequences-' + sessionStartedAtRef.current,
+        module: 'Figure Sequences',
+        completedAt: new Date().toISOString(),
+        total: SESSION_SIZE,
+        correct: nextCounts.correct,
+        incorrect: nextCounts.incorrect,
+        skipped: nextCounts.skipped,
+        percentage,
+        durationMs: Date.now() - sessionStartedAtRef.current,
+      });
       router.replace(
-        `/practice/figure-sequences/results?total=${SESSION_SIZE}&correct=${nextCounts.correct}&incorrect=${nextCounts.incorrect}&skipped=${nextCounts.skipped}` as never,
+        ('/practice/figure-sequences/results?module=Figure%20Sequences&total=' +
+          SESSION_SIZE +
+          '&correct=' +
+          nextCounts.correct +
+          '&incorrect=' +
+          nextCounts.incorrect +
+          '&skipped=' +
+          nextCounts.skipped +
+          '&percentage=' +
+          percentage) as never,
       );
       return;
     }
@@ -72,7 +98,7 @@ export function FigureSequencesScreen() {
     finalizedRef.current = true;
     countsRef.current = nextCounts;
     setCounts(nextCounts);
-    if (kind === 'skipped') advance(nextCounts);
+    if (kind === 'skipped') void advance(nextCounts);
   };
 
   const submit = () => {
@@ -93,6 +119,7 @@ export function FigureSequencesScreen() {
   };
 
   useEffect(() => {
+    if (index === 0) sessionStartedAtRef.current = Date.now();
     const deadline = Date.now() + QUESTION_DURATION_MS;
     finalizedRef.current = false;
     statusRef.current = 'active';

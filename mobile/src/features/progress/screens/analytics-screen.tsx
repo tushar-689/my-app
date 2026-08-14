@@ -7,8 +7,21 @@ import { ProgressBar } from '@/components/ui/progress-bar';
 import { SectionTabs } from '@/components/ui/section-tabs';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Spacing } from '@/constants/theme';
+import {
+  getPracticeSummary,
+  loadPracticeHistory,
+} from '@/features/practice/history/practice-history';
+import { useEffect, useState } from 'react';
 
 export function AnalyticsScreen() {
+  const [summary, setSummary] = useState(() => getPracticeSummary([]));
+
+  useEffect(() => {
+    loadPracticeHistory().then((history) => {
+      setSummary(getPracticeSummary(history));
+    });
+  }, []);
+
   return (
     <AppScreen>
       <View style={styles.header}>
@@ -28,9 +41,10 @@ export function AnalyticsScreen() {
       <AppCard color="surface" style={styles.chart}>
         <ThemedText type="label">ACCURACY</ThemedText>
         <View style={styles.scoreRow}>
-          <ThemedText type="display">78%</ThemedText>
+          <ThemedText type="display">{summary.accuracy}%</ThemedText>
           <ThemedText type="button" themeColor="greenDark">
-            ↑ 8% vs last week
+            {summary.totalSessions} session
+            {summary.totalSessions === 1 ? '' : 's'}
           </ThemedText>
         </View>
         <View style={styles.graph}>
@@ -78,7 +92,7 @@ export function AnalyticsScreen() {
           />
         </View>
         <ThemedText type="caption" themeColor="muted">
-          M T W T F S S
+          {summary.totalQuestions} questions completed
         </ThemedText>
       </AppCard>
       <ThemedText type="label" themeColor="muted" style={styles.sectionLabel}>
