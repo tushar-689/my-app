@@ -13,16 +13,19 @@ import {
   loadPracticeHistory,
   type PracticeSession,
 } from '@/features/practice/history/practice-history';
+import { getStreakSummary } from '@/features/progress/streaks';
 
 export function HomeScreen() {
   const [latest, setLatest] = useState<PracticeSession>();
   const [sessionCount, setSessionCount] = useState(0);
+  const [currentStreak, setCurrentStreak] = useState(0);
 
   useEffect(() => {
     loadPracticeHistory().then((history) => {
       const summary = getPracticeSummary(history);
       setLatest(summary.latest);
       setSessionCount(summary.totalSessions);
+      setCurrentStreak(getStreakSummary(history).currentStreak);
     });
   }, []);
 
@@ -53,7 +56,7 @@ export function HomeScreen() {
       <AppCard color="yellow" style={styles.streak}>
         <View>
           <ThemedText type="label">STREAK</ThemedText>
-          <ThemedText type="display">22</ThemedText>
+          <ThemedText type="display">{currentStreak}</ThemedText>
           <ThemedText type="caption">days — keep it up!</ThemedText>
         </View>
         <ThemedText type="display">♨</ThemedText>
