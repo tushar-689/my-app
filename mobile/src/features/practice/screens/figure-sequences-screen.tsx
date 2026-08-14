@@ -1,58 +1,135 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppButton } from '@/components/ui/app-button';
 import { AppCard } from '@/components/ui/app-card';
 import { AppScreen } from '@/components/ui/app-screen';
-import { AppButton } from '@/components/ui/app-button';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { FigureRenderer } from '../figure-sequences/figure-renderer';
 import { generateQuestion } from '../figure-sequences/generator';
+import {
+  formatRemaining,
+  QUESTION_DURATION_MS,
+  startDeadlineTicker,
+} from '../figure-sequences/timer';
 
 const SESSION_SIZE = 10;
+type SessionCounts = { correct: number; incorrect: number; skipped: number };
 
 export function FigureSequencesScreen() {
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
-  const [submitted, setSubmitted] = useState(false);
+  const [counts, setCounts] = useState<SessionCounts>({
+    correct: 0,
+    incorrect: 0,
+    skipped: 0,
+  });
+  const [status, setStatus] = useState<'active' | 'submitted' | 'expired'>(
+    'active',
+  );
+  const [remaining, setRemaining] = useState(QUESTION_DURATION_MS);
+  const countsRef = useRef<SessionCounts>(counts);
+  const finalizedRef = useRef(false);
+  const statusRef = useRef(status);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const question = useMemo(() => generateQuestion(7100 + index, 1), [index]);
 
-  const submit = () => {
-    if (selected === null) return;
-    if (!submitted) {
-      setSubmitted(true);
-      if (selected === question.correctAnswer) setScore((value) => value + 1);
-      return;
-    }
+  const advance = (nextCounts: SessionCounts) => {
     if (index === SESSION_SIZE - 1) {
-      const totalScore = score + (selected === question.correctAnswer ? 1 : 0);
       router.replace(
-        `/practice/figure-sequences/results?total=${SESSION_SIZE}&correct=${totalScore}&incorrect=${SESSION_SIZE - totalScore}&skipped=0` as never,
+        `/practice/figure-sequences/results?total=${SESSION_SIZE}&correct=${nextCounts.correct}&incorrect=${nextCounts.incorrect}&skipped=${nextCounts.skipped}` as never,
       );
       return;
     }
     setIndex((value) => value + 1);
     setSelected(null);
-    setSubmitted(false);
+    finalizedRef.current = false;
+    statusRef.current = 'active';
+    setStatus('active');
   };
 
+  const finalize = (kind: 'correct' | 'incorrect' | 'skipped') => {
+    if (
+      kind !== 'skipped' &&
+      (statusRef.current !== 'active' || finalizedRef.current)
+    )
+      return;
+    if (
+      kind === 'skipped' &&
+      statusRef.current !== 'expired' &&
+      finalizedRef.current
+    )
+      return;
+    if (kind === 'skipped' && statusRef.current !== 'expired')
+      finalizedRef.current = true;
+    const nextCounts = {
+      ...countsRef.current,
+      [kind]: countsRef.current[kind] + 1,
+    };
+    finalizedRef.current = true;
+    countsRef.current = nextCounts;
+    setCounts(nextCounts);
+    if (kind === 'skipped') advance(nextCounts);
+  };
+
+  const submit = () => {
+    if (statusRef.current !== 'active' || selected === null) return;
+    const isCorrect = selected === question.correctAnswer;
+    finalize(isCorrect ? 'correct' : 'incorrect');
+    statusRef.current = 'submitted';
+    setStatus('submitted');
+  };
+
+  const next = () => {
+    if (statusRef.current !== 'submitted') return;
+    advance(countsRef.current);
+  };
+  const skip = () => {
+    if (statusRef.current !== 'active') return;
+    finalize('skipped');
+  };
+
+  useEffect(() => {
+    const deadline = Date.now() + QUESTION_DURATION_MS;
+    finalizedRef.current = false;
+    statusRef.current = 'active';
+    const stopTicker = startDeadlineTicker(deadline, setRemaining, () => {
+      if (finalizedRef.current) return;
+      finalizedRef.current = true;
+      statusRef.current = 'expired';
+      setStatus('expired');
+      timeoutRef.current = setTimeout(() => finalize('skipped'), 350);
+    });
+    return () => {
+      stopTicker();
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+    // The effect intentionally restarts only when the active question changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
+
+  const timerColor =
+    status === 'expired' ? 'pink' : remaining <= 10_000 ? 'orange' : 'ink';
   return (
     <AppScreen>
       <View style={styles.top}>
         <ThemedText type="label" themeColor="muted">
           FIGURE SEQUENCES
         </ThemedText>
-        <ThemedText type="button">18:42　♡</ThemedText>
+        <ThemedText type="button" themeColor={timerColor}>
+          {status === 'expired' ? '00:00' : formatRemaining(remaining)}　♡
+        </ThemedText>
       </View>
       <View style={styles.counter}>
         <ThemedText type="label">
           Q. {String(index + 1).padStart(2, '0')} / {SESSION_SIZE}
         </ThemedText>
         <ThemedText type="caption" themeColor="muted">
-          {score} correct
+          {counts.correct} correct · {counts.incorrect} incorrect ·{' '}
+          {counts.skipped} skipped
         </ThemedText>
       </View>
       <ProgressBar
@@ -80,14 +157,15 @@ export function FigureSequencesScreen() {
             key={optionIndex}
             accessibilityRole="button"
             accessibilityLabel={`Answer option ${optionIndex + 1}`}
-            onPress={() => !submitted && setSelected(optionIndex)}
+            disabled={status !== 'active'}
+            onPress={() => setSelected(optionIndex)}
             style={[
               styles.option,
               selected === optionIndex && styles.selected,
-              submitted &&
+              status === 'submitted' &&
                 optionIndex === question.correctAnswer &&
                 styles.correct,
-              submitted &&
+              status === 'submitted' &&
                 selected === optionIndex &&
                 optionIndex !== question.correctAnswer &&
                 styles.incorrect,
@@ -100,17 +178,30 @@ export function FigureSequencesScreen() {
           </Pressable>
         ))}
       </View>
-      <AppButton
-        label={
-          submitted
-            ? index === SESSION_SIZE - 1
-              ? 'View Results'
-              : 'Next Question'
-            : 'Submit Answer'
-        }
-        onPress={submit}
-        variant={selected === null ? 'outline' : 'dark'}
-      />
+      {status === 'active' && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={skip}
+          style={styles.skip}
+        >
+          <ThemedText type="button" themeColor="muted">
+            Skip question
+          </ThemedText>
+        </Pressable>
+      )}
+      {status !== 'expired' && (
+        <AppButton
+          label={
+            status === 'submitted'
+              ? index === SESSION_SIZE - 1
+                ? 'View Results'
+                : 'Next Question'
+              : 'Submit Answer'
+          }
+          onPress={status === 'submitted' ? next : submit}
+          variant={selected === null ? 'outline' : 'dark'}
+        />
+      )}
     </AppScreen>
   );
 }
@@ -154,7 +245,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.three,
-    marginBottom: Spacing.five,
+    marginBottom: Spacing.four,
   },
   option: {
     width: '47%',
@@ -173,4 +264,5 @@ const styles = StyleSheet.create({
   },
   correct: { backgroundColor: Colors.light.green },
   incorrect: { backgroundColor: Colors.light.pink },
+  skip: { alignItems: 'center', paddingVertical: Spacing.three },
 });

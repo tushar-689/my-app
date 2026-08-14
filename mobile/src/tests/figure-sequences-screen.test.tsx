@@ -43,7 +43,7 @@ describe('FigureSequencesScreen', () => {
     }
     await fireEvent.press(view.getByText('View Results'));
     expect(mockRouter.replace).toHaveBeenCalledWith(
-      expect.stringContaining('/practice/figure-sequences/results?'),
+      '/practice/figure-sequences/results?total=10&correct=10&incorrect=0&skipped=0',
     );
   });
 });
