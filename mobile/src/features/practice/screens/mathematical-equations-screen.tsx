@@ -136,7 +136,6 @@ export function MathematicalEquationsScreen() {
                 option={option}
                 variables={question.variables}
                 selected={state.selectedAnswer === option.id}
-                onPress={() => undefined}
               />
             </Pressable>
           ))}

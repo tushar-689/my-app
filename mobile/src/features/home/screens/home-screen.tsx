@@ -17,6 +17,7 @@ import {
 import { getStreakSummary } from '@/features/progress/streaks';
 import { loadGamification } from '@/features/gamification/storage';
 import { getLevelProgress } from '@/features/gamification/levels';
+import { AdPlaceholder } from '@/features/ads/components';
 import {
   loadProfile,
   type LocalProfile,
@@ -81,6 +82,12 @@ export function HomeScreen() {
         </View>
         <ThemedText type="display">↗</ThemedText>
       </AppCard>
+      <AdPlaceholder placement="dMAT PREP+" />
+      <AppButton
+        label="Explore dMAT PREP+"
+        variant="outline"
+        onPress={() => router.push('/premium' as never)}
+      />
       <AppCard color="accentYellow" style={styles.streak}>
         <View>
           <ThemedText type="label">STREAK</ThemedText>

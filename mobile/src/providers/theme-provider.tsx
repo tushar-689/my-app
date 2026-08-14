@@ -1,44 +1,27 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 import { Colors, type Theme } from '@/constants/theme';
-import {
-  defaultSettings,
-  loadSettings,
-} from '@/features/profile/profile-storage';
 
 type ThemeContextValue = {
-  darkMode: boolean;
+  darkMode: false;
   theme: Theme;
   setDarkMode: (enabled: boolean) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue>({
-  darkMode: defaultSettings.darkMode,
+  darkMode: false,
   theme: Colors.light,
   setDarkMode: () => undefined,
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [darkMode, setDarkMode] = useState(defaultSettings.darkMode);
-
-  useEffect(() => {
-    loadSettings().then((settings) => setDarkMode(settings.darkMode));
-  }, []);
-
   const value = useMemo(
     () => ({
-      darkMode,
-      theme: darkMode ? Colors.dark : Colors.light,
-      setDarkMode,
+      darkMode: false as const,
+      theme: Colors.light,
+      setDarkMode: () => undefined,
     }),
-    [darkMode],
+    [],
   );
 
   return (

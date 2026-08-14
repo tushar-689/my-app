@@ -57,7 +57,7 @@ export default function AchievementsRoute() {
               value={(item.progress.current / item.progress.target) * 100}
               color={item.unlocked ? theme.textPrimary : theme.accentPurple}
             />
-          )}{' '}
+          )}
         </AppCard>
       ))}
     </AppScreen>

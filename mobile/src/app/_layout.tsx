@@ -13,6 +13,6 @@ export default function RootLayout() {
 }
 
 function ThemeStatusBar() {
-  const { darkMode } = useAppTheme();
-  return <StatusBar style={darkMode ? 'light' : 'dark'} />;
+  useAppTheme();
+  return <StatusBar style="dark" />;
 }

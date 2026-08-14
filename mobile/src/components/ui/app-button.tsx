@@ -9,6 +9,8 @@ import { useState } from 'react';
 import { Radius, Spacing } from '@/constants/theme';
 import { ThemedText } from './themed-text';
 import { useTheme } from '@/hooks/use-theme';
+import { haptics } from '@/services/haptics';
+import { sound } from '@/services/sound';
 
 type AppButtonProps = PressableProps & {
   label: string;
@@ -41,6 +43,8 @@ export function AppButton({
         ]}
         {...props}
         onPressIn={(event) => {
+          void haptics.tap();
+          void sound.tap();
           Animated.spring(scale, {
             toValue: 0.98,
             useNativeDriver: true,

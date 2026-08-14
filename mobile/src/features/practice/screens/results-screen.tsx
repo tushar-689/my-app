@@ -9,6 +9,8 @@ import { Spacing } from '@/constants/theme';
 import { useEffect, useState } from 'react';
 import { awardSessionXp } from '@/features/gamification/storage';
 import { getLevelProgress } from '@/features/gamification/levels';
+import { AdPlaceholder } from '@/features/ads/components';
+import { CelebrationOverlay } from '@/components/feedback/celebrations';
 
 export function ResultsScreen() {
   const params = useLocalSearchParams<{
@@ -71,6 +73,7 @@ export function ResultsScreen() {
   const level = getLevelProgress(totalXp);
   return (
     <AppScreen>
+      <CelebrationOverlay visible={xpEarned > 0} label="Nice work" />
       <ThemedText type="label" themeColor="muted">
         {params.module ?? 'FIGURE SEQUENCES'} / RESULTS
       </ThemedText>
@@ -114,6 +117,7 @@ export function ResultsScreen() {
           <ThemedText type="title">🔥 {params.bestCombo}x</ThemedText>
         )}
       </AppCard>
+      <AdPlaceholder placement="dMAT PREP+ · local demo" />
       <AppButton
         label="Practice Again"
         onPress={() =>

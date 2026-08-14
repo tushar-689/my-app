@@ -22,8 +22,8 @@ export const defaultProfile: LocalProfile = {
 };
 export const defaultSettings: LocalSettings = {
   darkMode: false,
-  soundEffects: false,
-  hapticFeedback: false,
+  soundEffects: true,
+  hapticFeedback: true,
   emailPreferences: true,
   language: 'English',
 };

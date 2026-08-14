@@ -6,6 +6,8 @@ import { AppScreen } from '@/components/ui/app-screen';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/providers/theme-provider';
+import { setHapticsEnabled } from '@/services/haptics';
+import { setSoundEnabled } from '@/services/sound';
 import {
   defaultSettings,
   loadSettings,
@@ -14,14 +16,15 @@ import {
 } from '@/features/profile/profile-storage';
 
 const toggles: {
-  key: 'darkMode' | 'soundEffects' | 'hapticFeedback' | 'emailPreferences';
+  key: 'soundEffects' | 'hapticFeedback' | 'emailPreferences';
   label: string;
 }[] = [
-  { key: 'darkMode', label: 'Dark Mode' },
+  { key: 'soundEffects', label: 'Sound Effects' },
+  { key: 'hapticFeedback', label: 'Haptic Feedback' },
   { key: 'emailPreferences', label: 'Email Preferences' },
 ];
 export default function SettingsRoute() {
-  const { setDarkMode, theme } = useAppTheme();
+  const { theme } = useAppTheme();
   const [settings, setSettings] = useState<LocalSettings>(defaultSettings);
   useEffect(() => {
     loadSettings().then(setSettings);
@@ -29,8 +32,9 @@ export default function SettingsRoute() {
   const toggle = (key: keyof LocalSettings) => {
     const next = { ...settings, [key]: !settings[key] } as LocalSettings;
     setSettings(next);
-    if (key === 'darkMode') setDarkMode(next.darkMode);
     void saveSettings(next);
+    if (key === 'hapticFeedback') setHapticsEnabled(next.hapticFeedback);
+    if (key === 'soundEffects') setSoundEnabled(next.soundEffects);
   };
   return (
     <AppScreen>
@@ -64,12 +68,6 @@ export default function SettingsRoute() {
             </View>
           </Pressable>
         ))}
-      </AppCard>
-      <AppCard style={styles.card}>
-        <ThemedText>Sound Effects · unavailable in this local alpha</ThemedText>
-        <ThemedText>
-          Haptic Feedback · unavailable in this local alpha
-        </ThemedText>
       </AppCard>
       <AppCard style={styles.card}>
         {[

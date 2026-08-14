@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppCard } from '@/components/ui/app-card';
 import { AppScreen } from '@/components/ui/app-screen';
@@ -9,6 +9,7 @@ import { SectionTabs } from '@/components/ui/section-tabs';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { NativeAdPlaceholder } from '@/features/ads/components';
 
 const coreModules = [
   ['✦', 'Figure Sequences', 'No attempts yet', 0, 'purple'],
@@ -21,8 +22,35 @@ const coreModules = [
 ] as const;
 
 export function PracticeScreen() {
+  const theme = useTheme();
   const [active, setActive] = useState('Core Module');
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('All');
   const isCore = active === 'Core Module';
+  const descriptions: Record<string, string> = {
+    'Figure Sequences': 'Spot movement, rotation, and pattern rules.',
+    'Mathematical Equations': 'Solve number systems under pressure.',
+    'Latin Squares': 'Complete grids with clean logical deductions.',
+  };
+  const visibleModules = coreModules.filter(([, name]) => {
+    const matchesSearch = `${name} ${descriptions[name] ?? ''}`
+      .toLowerCase()
+      .includes(query.trim().toLowerCase());
+    const matchesFilter =
+      filter === 'All' ||
+      (filter === 'Live'
+        ? [
+            'Figure Sequences',
+            'Mathematical Equations',
+            'Latin Squares',
+          ].includes(name)
+        : ![
+            'Figure Sequences',
+            'Mathematical Equations',
+            'Latin Squares',
+          ].includes(name));
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <AppScreen>
@@ -42,6 +70,35 @@ export function PracticeScreen() {
         active={active}
         onChange={setActive}
       />
+      <View style={styles.searchRow}>
+        <TextInput
+          accessibilityLabel="Search practice modules"
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search modules"
+          placeholderTextColor={theme.textMuted}
+          style={[
+            styles.search,
+            { color: theme.textPrimary, borderColor: theme.border },
+          ]}
+        />
+        {query.length > 0 && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Clear search"
+            onPress={() => setQuery('')}
+          >
+            <ThemedText type="button">Clear</ThemedText>
+          </Pressable>
+        )}
+      </View>
+      {isCore && (
+        <SectionTabs
+          items={['All', 'Live', 'Unavailable']}
+          active={filter}
+          onChange={setFilter}
+        />
+      )}
       {isCore && (
         <AppCard color="accentGreen" style={styles.focusCard}>
           <View>
@@ -63,7 +120,7 @@ export function PracticeScreen() {
           >
             CORE MODULES
           </ThemedText>
-          {coreModules.map(([icon, name, count, progress, color]) => (
+          {visibleModules.map(([icon, name, count, progress, color]) => (
             <ModuleCard
               key={name}
               icon={icon}
@@ -71,6 +128,7 @@ export function PracticeScreen() {
               count={count}
               progress={progress}
               color={color}
+              description={descriptions[name]}
               onPress={
                 name === 'Figure Sequences' ||
                 name === 'Mathematical Equations' ||
@@ -87,6 +145,15 @@ export function PracticeScreen() {
               }
             />
           ))}
+          <NativeAdPlaceholder />
+          {visibleModules.length === 0 && (
+            <AppCard color="surface" style={styles.emptySearch}>
+              <ThemedText type="title">No modules found.</ThemedText>
+              <ThemedText themeColor="muted">
+                Try a different search.
+              </ThemedText>
+            </AppCard>
+          )}
         </>
       ) : (
         <ComingSoonState
@@ -104,6 +171,7 @@ function ModuleCard({
   name,
   count,
   progress,
+  description,
   color,
   onPress,
 }: {
@@ -111,6 +179,7 @@ function ModuleCard({
   name: string;
   count: string;
   progress: number;
+  description?: string;
   color: keyof typeof Colors.light;
   onPress?: () => void;
 }) {
@@ -140,6 +209,11 @@ function ModuleCard({
             </ThemedText>
           )}
         </View>
+        {description && (
+          <ThemedText type="caption" themeColor="muted">
+            {description}
+          </ThemedText>
+        )}
         <ProgressBar value={progress} color={theme[color]} />
         <ThemedText type="caption" themeColor="muted">
           {count} questions attempted
@@ -195,6 +269,21 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.five,
   },
   sectionLabel: { marginTop: Spacing.six, marginBottom: Spacing.three },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    marginTop: Spacing.four,
+  },
+  search: {
+    flex: 1,
+    minHeight: 44,
+    borderWidth: 1.5,
+    borderRadius: Radius.small,
+    paddingHorizontal: Spacing.three,
+    backgroundColor: Colors.light.surface,
+  },
+  emptySearch: { marginTop: Spacing.four, gap: Spacing.two },
   focusCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -42,7 +42,6 @@ export function EquationOption({
   option: MathematicalEquationOption;
   variables: string[];
   selected: boolean;
-  onPress: () => void;
 }) {
   return (
     <AppCard color={selected ? 'green' : 'surface'} style={styles.option}>
