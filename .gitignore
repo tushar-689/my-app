@@ -1,0 +1,135 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.*
+
+# Node package manager caches and logs
+.npm/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Expo, React Native, and Metro
+.expo/
+.expo-shared/
+.metro-health-check*
+web-build/
+dist/
+expo-env.d.ts
+
+# Android and Gradle
+.gradle/
+**/build/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+*.hprof
+local.properties
+.cxx/
+.externalNativeBuild/
+captures/
+.kotlin/
+
+# iOS and Xcode
+DerivedData/
+build/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.moved-aside
+*.xcscmblueprint
+*.xccheckout
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Java, Maven, and Gradle
+*.war
+*.ear
+*.nar
+*.java.hprof
+hs_err_pid*
+replay_pid*
+.mvn/timing.properties
+target/
+
+# IDEs and editors
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.factorypath
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.code-workspace
+
+# Operating system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Icon?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+*~
+.directory
+
+# Docker runtime data and overrides
+docker-data/
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# Environment files and secrets (examples are intentionally committed)
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p8
+*.p12
+*.jks
+*.keystore
+*.mobileprovision
+
+# Logs, test output, and coverage
+logs/
+*.log
+coverage/
+.nyc_output/
+junit.xml
+test-results/
+playwright-report/
+blob-report/
+
+# Temporary files and caches
+.cache/
+.temp/
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.orig
+*.rej
+*.tsbuildinfo
