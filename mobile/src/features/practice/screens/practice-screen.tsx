@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -8,7 +9,7 @@ import { SectionTabs } from '@/components/ui/section-tabs';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 
-const modules = [
+const coreModules = [
   ['✦', 'Figure Sequences', '24 / 50', 48, 'purple'],
   ['▧', 'Connected Figures', '18 / 40', 45, 'yellow'],
   ['●', 'Row & Column Logic', '20 / 45', 44, 'green'],
@@ -18,6 +19,8 @@ const modules = [
 
 export function PracticeScreen() {
   const [active, setActive] = useState('Core Module');
+  const isCore = active === 'Core Module';
+
   return (
     <AppScreen>
       <View style={styles.header}>
@@ -27,39 +30,125 @@ export function PracticeScreen() {
           </ThemedText>
           <ThemedText type="title">Practice</ThemedText>
         </View>
-        <ThemedText type="title">⌕</ThemedText>
+        <ThemedText type="title" accessibilityLabel="Search">
+          ⌕
+        </ThemedText>
       </View>
       <SectionTabs
         items={['Core Module', 'Special Module']}
         active={active}
         onChange={setActive}
       />
-      <ThemedText type="label" themeColor="muted" style={styles.sectionLabel}>
-        {active.toUpperCase()}
-      </ThemedText>
-      {modules.map(([icon, name, count, progress, color]) => (
-        <Pressable key={name} accessibilityRole="button">
-          <AppCard color="surface" style={styles.module}>
-            <View
-              style={[
-                styles.moduleIcon,
-                { backgroundColor: Colors.light[color] },
-              ]}
-            >
-              <ThemedText type="title">{icon}</ThemedText>
-            </View>
-            <View style={styles.moduleInfo}>
-              <ThemedText type="button">{name}</ThemedText>
-              <ProgressBar value={progress} color={Colors.light[color]} />
-              <ThemedText type="caption" themeColor="muted">
-                {count} questions attempted
-              </ThemedText>
-            </View>
-            <ThemedText type="label">›</ThemedText>
-          </AppCard>
-        </Pressable>
-      ))}
+      {isCore ? (
+        <>
+          <ThemedText
+            type="label"
+            themeColor="muted"
+            style={styles.sectionLabel}
+          >
+            CORE MODULES
+          </ThemedText>
+          {coreModules.map(([icon, name, count, progress, color]) => (
+            <ModuleCard
+              key={name}
+              icon={icon}
+              name={name}
+              count={count}
+              progress={progress}
+              color={color}
+              onPress={
+                name === 'Figure Sequences'
+                  ? () => router.push('/practice/figure-sequences' as never)
+                  : undefined
+              }
+            />
+          ))}
+        </>
+      ) : (
+        <ComingSoonState
+          title="Special modules are coming soon"
+          body="We’re shaping focused challenges for the next stage of your prep."
+          color="yellow"
+        />
+      )}
     </AppScreen>
+  );
+}
+
+function ModuleCard({
+  icon,
+  name,
+  count,
+  progress,
+  color,
+  onPress,
+}: {
+  icon: string;
+  name: string;
+  count: string;
+  progress: number;
+  color: keyof typeof Colors.light;
+  onPress?: () => void;
+}) {
+  const card = (
+    <AppCard color="surface" style={styles.module}>
+      <View
+        style={[styles.moduleIcon, { backgroundColor: Colors.light[color] }]}
+      >
+        <ThemedText type="title">{icon}</ThemedText>
+      </View>
+      <View style={styles.moduleInfo}>
+        <View style={styles.nameRow}>
+          <ThemedText type="button">{name}</ThemedText>
+          {!onPress && (
+            <ThemedText type="caption" themeColor="muted">
+              Coming soon
+            </ThemedText>
+          )}
+        </View>
+        <ProgressBar value={progress} color={Colors.light[color]} />
+        <ThemedText type="caption" themeColor="muted">
+          {count} questions attempted
+        </ThemedText>
+      </View>
+      <ThemedText type="label">{onPress ? '›' : '—'}</ThemedText>
+    </AppCard>
+  );
+
+  return onPress ? (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Start ${name}`}
+      onPress={onPress}
+    >
+      {card}
+    </Pressable>
+  ) : (
+    <View accessibilityLabel={`${name}, coming soon`}>{card}</View>
+  );
+}
+
+export function ComingSoonState({
+  title,
+  body,
+  color,
+}: {
+  title: string;
+  body: string;
+  color: keyof typeof Colors.light;
+}) {
+  return (
+    <AppCard color={color} style={styles.empty}>
+      <View style={styles.emptyMark}>
+        <ThemedText type="display">✦</ThemedText>
+      </View>
+      <ThemedText type="title" style={styles.emptyTitle}>
+        {title}
+      </ThemedText>
+      <ThemedText themeColor="muted" style={styles.emptyBody}>
+        {body}
+      </ThemedText>
+    </AppCard>
   );
 }
 
@@ -86,4 +175,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   moduleInfo: { flex: 1, gap: Spacing.two },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  empty: {
+    marginTop: Spacing.six,
+    minHeight: 320,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.five,
+  },
+  emptyMark: {
+    width: 84,
+    height: 84,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.light.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.five,
+  },
+  emptyTitle: { textAlign: 'center', fontSize: 24 },
+  emptyBody: { textAlign: 'center', marginTop: Spacing.three, maxWidth: 250 },
 });
