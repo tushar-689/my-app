@@ -1,14 +1,15 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/ui/themed-text';
+import { useTheme } from '@/hooks/use-theme';
 
 const icons = {
   Home: '⌂',
-  Practice: '✦',
-  Exam: '▣',
+  Practice: '✧',
+  Exam: '□',
   Progress: '⌁',
-  Profile: '○',
+  Profile: '●',
 } as const;
 
 type AppTabBarProps = {
@@ -18,9 +19,15 @@ type AppTabBarProps = {
 };
 
 export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
+  const theme = useTheme();
   return (
-    <View style={styles.outer}>
-      <View style={styles.bar}>
+    <View style={[styles.outer, { backgroundColor: theme.background }]}>
+      <View
+        style={[
+          styles.bar,
+          { backgroundColor: theme.surface, borderColor: theme.border },
+        ]}
+      >
         {state.routes.map((route, index) => {
           const options = descriptors[route.key]?.options;
           const label = options?.title ?? route.name;
@@ -33,16 +40,26 @@ export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
               onPress={() => navigation.navigate(route.name)}
               style={styles.item}
             >
-              <View style={[styles.icon, focused && styles.activeIcon]}>
+              <View
+                style={[
+                  styles.icon,
+                  focused && styles.activeIcon,
+                  focused && { backgroundColor: theme.accentGreen },
+                ]}
+              >
                 <ThemedText
                   type="title"
-                  themeColor={focused ? 'background' : 'ink'}
+                  themeColor={focused ? 'textPrimary' : 'textSecondary'}
                   style={styles.iconText}
                 >
                   {icons[label as keyof typeof icons]}
                 </ThemedText>
               </View>
-              <ThemedText type="caption" themeColor={focused ? 'ink' : 'muted'}>
+              <ThemedText
+                type="caption"
+                themeColor={focused ? 'textPrimary' : 'textSecondary'}
+                style={styles.label}
+              >
                 {label}
               </ThemedText>
             </Pressable>
@@ -55,18 +72,20 @@ export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
 
 const styles = StyleSheet.create({
   outer: {
-    backgroundColor: Colors.light.background,
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.two,
     paddingBottom: Spacing.two,
   },
   bar: {
     flexDirection: 'row',
-    backgroundColor: Colors.light.surface,
-    borderColor: Colors.light.line,
     borderWidth: 1.5,
     borderRadius: Radius.large,
     paddingVertical: Spacing.two,
+    shadowColor: '#171717',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 0,
+    elevation: 3,
   },
   item: { flex: 1, alignItems: 'center', gap: 2 },
   icon: {
@@ -76,6 +95,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: Radius.small,
   },
-  activeIcon: { backgroundColor: Colors.light.green },
+  activeIcon: {
+    borderRadius: Radius.pill,
+    width: 34,
+    height: 28,
+  },
   iconText: { fontSize: 20, lineHeight: 22 },
+  label: { fontWeight: '700' },
 });

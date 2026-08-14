@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ONBOARDING_COMPLETE_KEY } from '@/features/onboarding/onboarding-storage';
+import { useTheme } from '@/hooks/use-theme';
 
 const slides = [
   {
@@ -36,18 +37,26 @@ function Illustration({
   kind: (typeof slides)[number]['art'];
   accent: (typeof slides)[number]['accent'];
 }) {
-  const color = Colors.light[accent];
+  const theme = useTheme();
+  const color = theme[accent];
   if (kind === 'globe')
     return (
       <View style={[styles.globe, { borderColor: color }]}>
         <ThemedText style={styles.globeMark}>✦</ThemedText>
-        <View style={[styles.pin, { backgroundColor: color }]} />
+        <View
+          style={[
+            styles.pin,
+            { backgroundColor: color, borderColor: theme.background },
+          ]}
+        />
       </View>
     );
   if (kind === 'timer')
     return (
-      <View style={[styles.timer, { borderColor: Colors.light.ink }]}>
-        <View style={styles.timerHand} />
+      <View style={[styles.timer, { borderColor: theme.textPrimary }]}>
+        <View
+          style={[styles.timerHand, { backgroundColor: theme.textPrimary }]}
+        />
         <ThemedText type="title" style={styles.timerTicks}>
           ✦
         </ThemedText>
@@ -56,7 +65,12 @@ function Illustration({
     );
   return (
     <View style={styles.notebook}>
-      <View style={[styles.notebookCover, { backgroundColor: color }]}>
+      <View
+        style={[
+          styles.notebookCover,
+          { backgroundColor: color, borderColor: theme.textPrimary },
+        ]}
+      >
         <ThemedText type="title">Practice</ThemedText>
         <ThemedText type="body">Learn ✓</ThemedText>
         <ThemedText type="body">Analyze ✓</ThemedText>
@@ -70,6 +84,7 @@ function Illustration({
 }
 
 export function OnboardingScreen() {
+  const theme = useTheme();
   const [current, setCurrent] = useState(0);
   const slide = slides[current];
   const finish = async () => {
@@ -108,8 +123,9 @@ export function OnboardingScreen() {
                 key={item.title}
                 style={[
                   styles.dot,
+                  { backgroundColor: theme.surfaceElevated },
                   index === current && {
-                    backgroundColor: Colors.light[slide.accent],
+                    backgroundColor: theme[slide.accent],
                     width: 24,
                   },
                 ]}
@@ -138,14 +154,14 @@ export function OnboardingScreen() {
                 {
                   backgroundColor:
                     current === slides.length - 1
-                      ? Colors.light.ink
-                      : Colors.light[slide.accent],
+                      ? theme.buttonPrimary
+                      : theme[slide.accent],
                 },
               ]}
             >
               <ThemedText
                 type="display"
-                themeColor="background"
+                themeColor="buttonPrimaryText"
                 style={styles.nextArrow}
               >
                 →
@@ -159,7 +175,7 @@ export function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: Colors.light.background },
+  safeArea: { flex: 1 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -196,7 +212,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: Radius.pill,
-    backgroundColor: '#D7D5C7',
   },
   actions: {
     minHeight: 54,
@@ -211,7 +226,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: Colors.light.line,
   },
   nextArrow: { lineHeight: 36 },
   globe: {
@@ -232,7 +246,6 @@ const styles = StyleSheet.create({
     top: 24,
     right: 28,
     borderWidth: 5,
-    borderColor: Colors.light.background,
   },
   timer: {
     width: 210,
@@ -246,7 +259,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 3,
     height: 68,
-    backgroundColor: Colors.light.ink,
     transform: [{ rotate: '35deg' }],
   },
   timerTicks: { fontSize: 48 },
@@ -262,7 +274,6 @@ const styles = StyleSheet.create({
   notebookCover: {
     flex: 1,
     borderWidth: 2,
-    borderColor: Colors.light.ink,
     borderRadius: Radius.small,
     padding: Spacing.five,
     gap: Spacing.three,

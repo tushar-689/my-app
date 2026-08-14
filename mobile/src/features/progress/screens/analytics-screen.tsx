@@ -6,18 +6,24 @@ import { AppScreen } from '@/components/ui/app-screen';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { SectionTabs } from '@/components/ui/section-tabs';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   getPracticeSummary,
   loadPracticeHistory,
+  type PracticeSession,
 } from '@/features/practice/history/practice-history';
 import { useEffect, useState } from 'react';
 
 export function AnalyticsScreen() {
+  const theme = useTheme();
   const [summary, setSummary] = useState(() => getPracticeSummary([]));
+  const [history, setHistory] = useState<PracticeSession[]>([]);
+  const [range, setRange] = useState('Week');
 
   useEffect(() => {
     loadPracticeHistory().then((history) => {
+      setHistory(history);
       setSummary(getPracticeSummary(history));
     });
   }, []);
@@ -35,8 +41,8 @@ export function AnalyticsScreen() {
       </View>
       <SectionTabs
         items={['Week', 'Month', 'All Time']}
-        active="Week"
-        onChange={() => undefined}
+        active={range}
+        onChange={setRange}
       />
       <AppCard color="surface" style={styles.chart}>
         <ThemedText type="label">ACCURACY</ThemedText>
@@ -47,50 +53,28 @@ export function AnalyticsScreen() {
             {summary.totalSessions === 1 ? '' : 's'}
           </ThemedText>
         </View>
-        <View style={styles.graph}>
-          <View
-            style={[
-              styles.graphLine,
-              { height: 36, backgroundColor: Colors.light.green },
-            ]}
-          />
-          <View
-            style={[
-              styles.graphLine,
-              { height: 20, backgroundColor: Colors.light.purple },
-            ]}
-          />
-          <View
-            style={[
-              styles.graphLine,
-              { height: 54, backgroundColor: Colors.light.green },
-            ]}
-          />
-          <View
-            style={[
-              styles.graphLine,
-              { height: 42, backgroundColor: Colors.light.yellow },
-            ]}
-          />
-          <View
-            style={[
-              styles.graphLine,
-              { height: 74, backgroundColor: Colors.light.green },
-            ]}
-          />
-          <View
-            style={[
-              styles.graphLine,
-              { height: 52, backgroundColor: Colors.light.purple },
-            ]}
-          />
-          <View
-            style={[
-              styles.graphLine,
-              { height: 88, backgroundColor: Colors.light.green },
-            ]}
-          />
-        </View>
+        {history.length > 0 ? (
+          <View style={styles.graph}>
+            {history
+              .slice(0, 7)
+              .reverse()
+              .map((session, index) => (
+                <View
+                  key={session.id}
+                  style={[
+                    styles.graphLine,
+                    {
+                      height: Math.max(8, session.percentage * 0.88),
+                      backgroundColor:
+                        index % 2 ? theme.accentPurple : theme.accentGreen,
+                    },
+                  ]}
+                />
+              ))}
+          </View>
+        ) : (
+          <ThemedText themeColor="muted">No practice data yet.</ThemedText>
+        )}
         <ThemedText type="caption" themeColor="muted">
           {summary.totalQuestions} questions completed
         </ThemedText>
@@ -99,23 +83,33 @@ export function AnalyticsScreen() {
         TOPIC MASTERY
       </ThemedText>
       <AppCard color="surface">
-        {[
-          ['Figure Sequences', 82, 'green'],
-          ['Connected Figures', 65, 'purple'],
-          ['Row & Column Logic', 70, 'yellow'],
-          ['Matrix Reasoning', 60, 'pink'],
-        ].map(([label, value, color]) => (
-          <View key={label} style={styles.mastery}>
-            <View style={styles.masteryLabel}>
-              <ThemedText type="caption">{label}</ThemedText>
-              <ThemedText type="caption">{value}%</ThemedText>
+        {(
+          [
+            'Figure Sequences',
+            'Mathematical Equations',
+            'Latin Squares',
+          ] as const
+        ).map((label, index) => {
+          const rows = history.filter((session) => session.module === label);
+          const total = rows.reduce((sum, session) => sum + session.total, 0);
+          const correct = rows.reduce(
+            (sum, session) => sum + session.correct,
+            0,
+          );
+          const value = total ? Math.round((correct / total) * 100) : 0;
+          const colors = ['green', 'purple', 'yellow'] as const;
+          return (
+            <View key={label} style={styles.mastery}>
+              <View style={styles.masteryLabel}>
+                <ThemedText type="caption">{label}</ThemedText>
+                <ThemedText type="caption">
+                  {total ? `${value}%` : 'No data yet'}
+                </ThemedText>
+              </View>
+              <ProgressBar value={value} color={theme[colors[index]]} />
             </View>
-            <ProgressBar
-              value={Number(value)}
-              color={Colors.light[color as keyof typeof Colors.light]}
-            />
-          </View>
-        ))}
+          );
+        })}
       </AppCard>
       <View style={styles.links}>
         <Link href={'/progress/streak' as never} asChild>
@@ -150,7 +144,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-around',
-    borderBottomColor: Colors.light.line,
     borderBottomWidth: 1,
   },
   graphLine: { width: 18, borderRadius: 8 },

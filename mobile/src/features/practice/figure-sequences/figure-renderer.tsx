@@ -1,6 +1,6 @@
 import Svg, { Circle, G, Line, Polygon, Rect } from 'react-native-svg';
 
-import { Colors } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import type { Figure } from './model';
 
 export function FigureRenderer({
@@ -10,10 +10,11 @@ export function FigureRenderer({
   figure: Figure;
   size?: number;
 }) {
+  const theme = useTheme();
   const center = size / 2;
   const scale = figure.size / 28;
-  const color = Colors.light[figure.color];
-  const stroke = Colors.light.line;
+  const color = theme[figure.color];
+  const stroke = theme.border;
   const common = {
     fill: figure.fill === 'solid' ? color : 'transparent',
     stroke,
@@ -21,7 +22,12 @@ export function FigureRenderer({
   };
   const points = `${center},${center - 18 * scale} ${center + 18 * scale},${center + 15 * scale} ${center - 18 * scale},${center + 15 * scale}`;
   return (
-    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <Svg
+      accessibilityLabel={`${figure.shape} figure`}
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+    >
       <G
         rotation={figure.rotation}
         origin={`${center}, ${center}`}

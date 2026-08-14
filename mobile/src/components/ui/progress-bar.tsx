@@ -1,22 +1,36 @@
-import { StyleSheet, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
 
-import { Colors, Radius } from '@/constants/theme';
+import { Radius } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export function ProgressBar({
   value,
-  color = Colors.light.green,
+  color,
 }: {
   value: number;
   color?: string;
 }) {
+  const theme = useTheme();
+  const [width] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    Animated.timing(width, {
+      toValue: Math.min(100, Math.max(0, value)),
+      duration: 350,
+      useNativeDriver: false,
+    }).start();
+  }, [value, width]);
   return (
-    <View style={styles.track}>
-      <View
+    <View style={[styles.track, { backgroundColor: theme.surfaceElevated }]}>
+      <Animated.View
         style={[
           styles.fill,
           {
-            width: `${Math.min(100, Math.max(0, value))}%`,
-            backgroundColor: color,
+            width: width.interpolate({
+              inputRange: [0, 100],
+              outputRange: ['0%', '100%'],
+            }),
+            backgroundColor: color ?? theme.accentGreen,
           },
         ]}
       />
@@ -28,7 +42,6 @@ const styles = StyleSheet.create({
   track: {
     height: 8,
     borderRadius: Radius.pill,
-    backgroundColor: '#E8E6D5',
     overflow: 'hidden',
   },
   fill: { height: '100%', borderRadius: Radius.pill },

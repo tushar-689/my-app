@@ -4,7 +4,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppCard } from '@/components/ui/app-card';
 import { AppScreen } from '@/components/ui/app-screen';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useAppTheme } from '@/providers/theme-provider';
 import {
   defaultSettings,
   loadSettings,
@@ -17,11 +18,10 @@ const toggles: {
   label: string;
 }[] = [
   { key: 'darkMode', label: 'Dark Mode' },
-  { key: 'soundEffects', label: 'Sound Effects' },
-  { key: 'hapticFeedback', label: 'Haptic Feedback' },
   { key: 'emailPreferences', label: 'Email Preferences' },
 ];
 export default function SettingsRoute() {
+  const { setDarkMode, theme } = useAppTheme();
   const [settings, setSettings] = useState<LocalSettings>(defaultSettings);
   useEffect(() => {
     loadSettings().then(setSettings);
@@ -29,6 +29,7 @@ export default function SettingsRoute() {
   const toggle = (key: keyof LocalSettings) => {
     const next = { ...settings, [key]: !settings[key] } as LocalSettings;
     setSettings(next);
+    if (key === 'darkMode') setDarkMode(next.darkMode);
     void saveSettings(next);
   };
   return (
@@ -47,13 +48,28 @@ export default function SettingsRoute() {
             onPress={() => toggle(item.key)}
           >
             <ThemedText>{item.label}</ThemedText>
-            <View style={[styles.switch, settings[item.key] && styles.on]}>
+            <View
+              style={[
+                styles.switch,
+                {
+                  backgroundColor: settings[item.key]
+                    ? theme.accentGreen
+                    : theme.border,
+                },
+              ]}
+            >
               <View
                 style={[styles.knob, settings[item.key] && styles.knobOn]}
               />
             </View>
           </Pressable>
         ))}
+      </AppCard>
+      <AppCard style={styles.card}>
+        <ThemedText>Sound Effects · unavailable in this local alpha</ThemedText>
+        <ThemedText>
+          Haptic Feedback · unavailable in this local alpha
+        </ThemedText>
       </AppCard>
       <AppCard style={styles.card}>
         {[
@@ -101,15 +117,12 @@ const styles = StyleSheet.create({
     width: 44,
     height: 26,
     borderRadius: 20,
-    backgroundColor: Colors.light.line,
     padding: 3,
   },
-  on: { backgroundColor: Colors.light.green },
   knob: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: Colors.light.background,
   },
   knobOn: { alignSelf: 'flex-end' },
   info: { flexDirection: 'row', justifyContent: 'space-between' },

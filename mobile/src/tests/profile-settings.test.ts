@@ -8,7 +8,10 @@ import {
   saveSettings,
 } from '@/features/profile/profile-storage';
 
-jest.mock('@react-native-async-storage/async-storage');
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  __esModule: true,
+  default: { getItem: jest.fn(), setItem: jest.fn() },
+}));
 
 describe('profile and settings storage', () => {
   beforeEach(() => jest.clearAllMocks());

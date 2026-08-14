@@ -5,27 +5,32 @@ import { AppButton } from '@/components/ui/app-button';
 import { AppCard } from '@/components/ui/app-card';
 import { AppScreen } from '@/components/ui/app-screen';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   getPracticeSummary,
   loadPracticeHistory,
 } from '@/features/practice/history/practice-history';
 import { loadProfile, saveProfile, type LocalProfile } from './profile-storage';
+import { loadGamification } from '@/features/gamification/storage';
 
 export function ProfileScreen() {
+  const theme = useTheme();
   const [profile, setProfile] = useState<LocalProfile>();
   const [editing, setEditing] = useState(false);
   const [sessions, setSessions] = useState(0);
   const [questions, setQuestions] = useState(0);
   useEffect(() => {
-    Promise.all([loadProfile(), loadPracticeHistory()]).then(
-      ([value, history]) => {
-        setProfile(value);
-        const summary = getPracticeSummary(history);
-        setSessions(summary.totalSessions);
-        setQuestions(summary.totalQuestions);
-      },
-    );
+    Promise.all([
+      loadProfile(),
+      loadPracticeHistory(),
+      loadGamification(),
+    ]).then(([value, history, gamification]) => {
+      setProfile({ ...value, xp: gamification.totalXp });
+      const summary = getPracticeSummary(history);
+      setSessions(summary.totalSessions);
+      setQuestions(summary.totalQuestions);
+    });
   }, []);
   if (!profile)
     return (
@@ -42,7 +47,12 @@ export function ProfileScreen() {
   return (
     <AppScreen>
       <View style={styles.header}>
-        <View style={styles.avatar}>
+        <View
+          style={[
+            styles.avatar,
+            { backgroundColor: theme.accentGreen, borderColor: theme.border },
+          ]}
+        >
           <ThemedText type="display">
             {profile.name.charAt(0).toUpperCase()}
           </ThemedText>
@@ -79,14 +89,28 @@ export function ProfileScreen() {
             accessibilityLabel="Name"
             value={profile.name}
             onChangeText={(value) => update('name', value)}
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                borderColor: theme.border,
+                color: theme.textPrimary,
+                backgroundColor: theme.background,
+              },
+            ]}
             placeholder="Name"
           />
           <TextInput
             accessibilityLabel="Email"
             value={profile.email}
             onChangeText={(value) => update('email', value)}
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                borderColor: theme.border,
+                color: theme.textPrimary,
+                backgroundColor: theme.background,
+              },
+            ]}
             autoCapitalize="none"
             keyboardType="email-address"
           />
@@ -120,9 +144,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: Radius.pill,
-    backgroundColor: Colors.light.green,
     borderWidth: 1.5,
-    borderColor: Colors.light.line,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -137,10 +159,7 @@ const styles = StyleSheet.create({
   form: { gap: Spacing.three, marginBottom: Spacing.three },
   input: {
     borderWidth: 1.5,
-    borderColor: Colors.light.line,
     borderRadius: Radius.small,
     padding: Spacing.three,
-    color: Colors.light.ink,
-    backgroundColor: Colors.light.background,
   },
 });

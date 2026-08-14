@@ -1,7 +1,9 @@
+import { getRemainingTime, isExpired } from '@/domain/sessions/timer';
+
 export const QUESTION_DURATION_MS = 60_000;
 
 export function getRemainingMs(deadlineTimestamp: number, now = Date.now()) {
-  return Math.max(0, deadlineTimestamp - now);
+  return getRemainingTime(deadlineTimestamp, now) ?? 0;
 }
 
 export function formatRemaining(ms: number) {
@@ -19,10 +21,16 @@ export function startDeadlineTicker(
   onExpire: () => void,
 ) {
   let expired = false;
+  const initialRemaining = getRemainingMs(deadlineTimestamp);
+  onTick(initialRemaining);
+  if (isExpired(deadlineTimestamp, Date.now())) {
+    expired = true;
+    onExpire();
+  }
   const interval = setInterval(() => {
     const remaining = getRemainingMs(deadlineTimestamp);
     onTick(remaining);
-    if (remaining === 0 && !expired) {
+    if (isExpired(deadlineTimestamp, Date.now()) && !expired) {
       expired = true;
       onExpire();
     }

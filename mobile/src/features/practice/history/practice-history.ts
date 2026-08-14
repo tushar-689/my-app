@@ -2,7 +2,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type PracticeSession = {
   id: string;
-  module: 'Figure Sequences';
+  module:
+    | 'Figure Sequences'
+    | 'Mathematical Equations'
+    | 'Latin Squares'
+    | 'Core Mock';
+  taskType?: 'figure-sequences' | 'mathematical-equations' | 'latin-squares';
+  mode?: 'practice' | 'exam-simulation';
   completedAt: string;
   total: number;
   correct: number;

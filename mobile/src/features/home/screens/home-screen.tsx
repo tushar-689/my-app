@@ -7,53 +7,81 @@ import { AppCard } from '@/components/ui/app-card';
 import { AppScreen } from '@/components/ui/app-screen';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   getPracticeSummary,
   loadPracticeHistory,
   type PracticeSession,
 } from '@/features/practice/history/practice-history';
 import { getStreakSummary } from '@/features/progress/streaks';
+import { loadGamification } from '@/features/gamification/storage';
+import { getLevelProgress } from '@/features/gamification/levels';
+import {
+  loadProfile,
+  type LocalProfile,
+} from '@/features/profile/profile-storage';
 
 export function HomeScreen() {
+  const theme = useTheme();
   const [latest, setLatest] = useState<PracticeSession>();
   const [sessionCount, setSessionCount] = useState(0);
   const [currentStreak, setCurrentStreak] = useState(0);
+  const [profile, setProfile] = useState<LocalProfile>();
+  const [totalXp, setTotalXp] = useState(0);
 
   useEffect(() => {
-    loadPracticeHistory().then((history) => {
+    Promise.all([
+      loadPracticeHistory(),
+      loadProfile(),
+      loadGamification(),
+    ]).then(([history, value, gamification]) => {
+      setProfile(value);
       const summary = getPracticeSummary(history);
       setLatest(summary.latest);
       setSessionCount(summary.totalSessions);
       setCurrentStreak(getStreakSummary(history).currentStreak);
+      setTotalXp(gamification.totalXp);
     });
   }, []);
+  const level = getLevelProgress(totalXp);
 
   return (
     <AppScreen>
       <View style={styles.top}>
         <View>
           <ThemedText type="label" themeColor="muted">
-            MONDAY, 12 MAY
+            YOUR DASHBOARD
           </ThemedText>
-          <ThemedText type="title">Hey Tushar 👋</ThemedText>
+          <ThemedText type="title">
+            Hey {profile?.name ?? 'Tushar'} 👋
+          </ThemedText>
           <ThemedText themeColor="muted">
-            Let&apos;s make today count.
+            Your next point is waiting.
           </ThemedText>
         </View>
-        <View style={styles.avatar}>
-          <ThemedText type="title">T</ThemedText>
+        <View
+          style={[
+            styles.avatar,
+            { backgroundColor: theme.accentPurple, borderColor: theme.border },
+          ]}
+        >
+          <ThemedText type="title">
+            {profile?.name?.charAt(0).toUpperCase() ?? 'T'}
+          </ThemedText>
         </View>
       </View>
-      <AppCard color="green" style={styles.goal}>
+      <AppCard color="accentGreen" style={styles.goal}>
         <View style={styles.goalText}>
-          <ThemedText type="label">DAILY GOAL</ThemedText>
-          <ThemedText type="display">3 / 5</ThemedText>
-          <ThemedText type="caption">Mocks completed</ThemedText>
+          <ThemedText type="label">PRACTICE ACTIVITY</ThemedText>
+          <ThemedText type="display">{sessionCount}</ThemedText>
+          <ThemedText type="caption">
+            completed session{sessionCount === 1 ? '' : 's'}
+          </ThemedText>
         </View>
         <ThemedText type="display">↗</ThemedText>
       </AppCard>
-      <AppCard color="yellow" style={styles.streak}>
+      <AppCard color="accentYellow" style={styles.streak}>
         <View>
           <ThemedText type="label">STREAK</ThemedText>
           <ThemedText type="display">{currentStreak}</ThemedText>
@@ -61,7 +89,7 @@ export function HomeScreen() {
         </View>
         <ThemedText type="display">♨</ThemedText>
       </AppCard>
-      <AppCard color="purple" style={styles.progress}>
+      <AppCard color="accentPurple" style={styles.progress}>
         <ThemedText type="label">OVERALL PROGRESS</ThemedText>
         <View style={styles.progressRow}>
           <ThemedText type="display">{latest?.percentage ?? 0}%</ThemedText>
@@ -73,7 +101,24 @@ export function HomeScreen() {
               : 'Complete a session to see your progress.'}
           </ThemedText>
         </View>
-        <ProgressBar value={68} color={Colors.light.ink} />
+        <ProgressBar
+          value={latest?.percentage ?? 0}
+          color={theme.textPrimary}
+        />
+      </AppCard>
+      <AppCard color="surface" style={styles.xpCard}>
+        <View style={styles.progressRow}>
+          <View>
+            <ThemedText type="label">LEVEL {level.level}</ThemedText>
+            <ThemedText type="title">{totalXp} XP</ThemedText>
+          </View>
+          <ThemedText type="display">✦</ThemedText>
+        </View>
+        <ProgressBar value={level.progressPercent} color={theme.accentGreen} />
+        <ThemedText type="caption" themeColor="muted">
+          {level.xpForNextLevel - level.xpIntoLevel} XP to next level ·{' '}
+          {sessionCount} sessions
+        </ThemedText>
       </AppCard>
       <View style={styles.section}>
         <ThemedText type="title">Ready to practice?</ThemedText>
@@ -81,7 +126,7 @@ export function HomeScreen() {
           A focused 10-minute session can move you forward.
         </ThemedText>
         <AppButton
-          label="Start Practice"
+          label="Let's go →"
           variant="dark"
           onPress={() => router.push('/practice' as never)}
         />
@@ -102,11 +147,9 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: Radius.pill,
-    backgroundColor: Colors.light.purple,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: Colors.light.line,
   },
   goal: {
     flexDirection: 'row',
@@ -127,6 +170,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.three,
   },
+  xpCard: { gap: Spacing.three, marginBottom: Spacing.three },
   section: { gap: Spacing.three, marginTop: Spacing.seven },
   subtitle: { marginTop: -Spacing.two },
 });

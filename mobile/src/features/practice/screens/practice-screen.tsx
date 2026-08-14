@@ -8,13 +8,16 @@ import { ProgressBar } from '@/components/ui/progress-bar';
 import { SectionTabs } from '@/components/ui/section-tabs';
 import { ThemedText } from '@/components/ui/themed-text';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 const coreModules = [
-  ['✦', 'Figure Sequences', '24 / 50', 48, 'purple'],
-  ['▧', 'Connected Figures', '18 / 40', 45, 'yellow'],
-  ['●', 'Row & Column Logic', '20 / 45', 44, 'green'],
-  ['▦', 'Matrix Reasoning', '16 / 30', 53, 'orange'],
-  ['⌁', 'Rules & Relations', '10 / 25', 40, 'pink'],
+  ['✦', 'Figure Sequences', 'No attempts yet', 0, 'purple'],
+  ['=', 'Mathematical Equations', '0 / 40', 0, 'green'],
+  ['▣', 'Latin Squares', '0 / 40', 0, 'orange'],
+  ['▧', 'Connected Figures', 'Unavailable', 0, 'yellow'],
+  ['●', 'Row & Column Logic', 'Unavailable', 0, 'green'],
+  ['▦', 'Matrix Reasoning', 'Unavailable', 0, 'orange'],
+  ['⌁', 'Rules & Relations', 'Unavailable', 0, 'pink'],
 ] as const;
 
 export function PracticeScreen() {
@@ -39,6 +42,18 @@ export function PracticeScreen() {
         active={active}
         onChange={setActive}
       />
+      {isCore && (
+        <AppCard color="accentGreen" style={styles.focusCard}>
+          <View>
+            <ThemedText type="label">TODAY&apos;S FOCUS</ThemedText>
+            <ThemedText type="hero">Make the next move.</ThemedText>
+            <ThemedText type="caption">
+              Three cognitive tasks. One sharper you.
+            </ThemedText>
+          </View>
+          <ThemedText type="display">↗</ThemedText>
+        </AppCard>
+      )}
       {isCore ? (
         <>
           <ThemedText
@@ -57,8 +72,17 @@ export function PracticeScreen() {
               progress={progress}
               color={color}
               onPress={
-                name === 'Figure Sequences'
-                  ? () => router.push('/practice/figure-sequences' as never)
+                name === 'Figure Sequences' ||
+                name === 'Mathematical Equations' ||
+                name === 'Latin Squares'
+                  ? () =>
+                      router.push(
+                        (name === 'Figure Sequences'
+                          ? '/practice/figure-sequences'
+                          : name === 'Mathematical Equations'
+                            ? '/practice/mathematical-equations'
+                            : '/practice/latin-squares') as never,
+                      )
                   : undefined
               }
             />
@@ -90,11 +114,21 @@ function ModuleCard({
   color: keyof typeof Colors.light;
   onPress?: () => void;
 }) {
+  const theme = useTheme();
   const card = (
-    <AppCard color="surface" style={styles.module}>
-      <View
-        style={[styles.moduleIcon, { backgroundColor: Colors.light[color] }]}
-      >
+    <AppCard
+      color={
+        onPress
+          ? color === 'purple'
+            ? 'accentPurple'
+            : color === 'orange'
+              ? 'accentYellow'
+              : 'surface'
+          : 'surface'
+      }
+      style={styles.module}
+    >
+      <View style={[styles.moduleIcon, { backgroundColor: theme[color] }]}>
         <ThemedText type="title">{icon}</ThemedText>
       </View>
       <View style={styles.moduleInfo}>
@@ -106,7 +140,7 @@ function ModuleCard({
             </ThemedText>
           )}
         </View>
-        <ProgressBar value={progress} color={Colors.light[color]} />
+        <ProgressBar value={progress} color={theme[color]} />
         <ThemedText type="caption" themeColor="muted">
           {count} questions attempted
         </ThemedText>
@@ -137,9 +171,10 @@ export function ComingSoonState({
   body: string;
   color: keyof typeof Colors.light;
 }) {
+  const theme = useTheme();
   return (
     <AppCard color={color} style={styles.empty}>
-      <View style={styles.emptyMark}>
+      <View style={[styles.emptyMark, { backgroundColor: theme.surface }]}>
         <ThemedText type="display">✦</ThemedText>
       </View>
       <ThemedText type="title" style={styles.emptyTitle}>
@@ -160,6 +195,15 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.five,
   },
   sectionLabel: { marginTop: Spacing.six, marginBottom: Spacing.three },
+  focusCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: Spacing.four,
+    marginBottom: Spacing.five,
+    minHeight: 126,
+    gap: Spacing.three,
+  },
   module: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -192,7 +236,6 @@ const styles = StyleSheet.create({
     width: 84,
     height: 84,
     borderRadius: Radius.pill,
-    backgroundColor: Colors.light.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.five,

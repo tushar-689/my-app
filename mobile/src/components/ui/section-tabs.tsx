@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { ThemedText } from './themed-text';
+import { useTheme } from '@/hooks/use-theme';
 
 export function SectionTabs({
   items,
@@ -12,17 +13,21 @@ export function SectionTabs({
   active: string;
   onChange: (item: string) => void;
 }) {
+  const theme = useTheme();
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, { backgroundColor: theme.surfaceElevated }]}>
       {items.map((item) => (
         <Pressable
           key={item}
           onPress={() => onChange(item)}
-          style={[styles.tab, item === active && styles.active]}
+          style={[
+            styles.tab,
+            item === active && { backgroundColor: theme.buttonPrimary },
+          ]}
         >
           <ThemedText
             type="label"
-            themeColor={item === active ? 'background' : 'ink'}
+            themeColor={item === active ? 'buttonPrimaryText' : 'textPrimary'}
           >
             {item}
           </ThemedText>
@@ -36,7 +41,6 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: Spacing.two,
-    backgroundColor: '#EFEDDE',
     borderRadius: Radius.pill,
     padding: 3,
   },
@@ -46,5 +50,4 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderRadius: Radius.pill,
   },
-  active: { backgroundColor: Colors.light.ink },
 });

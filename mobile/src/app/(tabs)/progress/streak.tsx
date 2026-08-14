@@ -4,7 +4,8 @@ import { StyleSheet, View } from 'react-native';
 import { AppCard } from '@/components/ui/app-card';
 import { AppScreen } from '@/components/ui/app-screen';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { loadPracticeHistory } from '@/features/practice/history/practice-history';
 import {
   getStreakSummary,
@@ -12,6 +13,7 @@ import {
 } from '@/features/progress/streaks';
 
 export default function StreakRoute() {
+  const theme = useTheme();
   const [summary, setSummary] = useState<StreakSummary>(() =>
     getStreakSummary([]),
   );
@@ -31,7 +33,7 @@ export default function StreakRoute() {
           ? 'You are building a beautiful rhythm.'
           : 'Start a practice session today to begin your streak.'}
       </ThemedText>
-      <AppCard color="yellow" style={styles.hero}>
+      <AppCard color="accentYellow" style={styles.hero}>
         <ThemedText type="label">CURRENT STREAK</ThemedText>
         <ThemedText type="display">{summary.currentStreak}</ThemedText>
         <ThemedText type="caption">active days in a row</ThemedText>
@@ -51,7 +53,13 @@ export default function StreakRoute() {
         <View style={styles.days}>
           {summary.weeklyActivity.map((day) => (
             <View key={day.dateKey} style={styles.day}>
-              <View style={[styles.dot, day.active && styles.active]}>
+              <View
+                style={[
+                  styles.dot,
+                  { borderColor: theme.border },
+                  day.active && { backgroundColor: theme.accentGreen },
+                ]}
+              >
                 <ThemedText type="caption">{day.active ? '✓' : ''}</ThemedText>
               </View>
               <ThemedText type="caption">{day.label}</ThemedText>
@@ -74,9 +82,7 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: Radius.pill,
     borderWidth: 1.5,
-    borderColor: Colors.light.line,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  active: { backgroundColor: Colors.light.green },
 });

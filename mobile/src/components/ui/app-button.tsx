@@ -1,7 +1,14 @@
-import { Pressable, StyleSheet, type PressableProps } from 'react-native';
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  type PressableProps,
+} from 'react-native';
+import { useState } from 'react';
 
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { ThemedText } from './themed-text';
+import { useTheme } from '@/hooks/use-theme';
 
 type AppButtonProps = PressableProps & {
   label: string;
@@ -14,31 +21,63 @@ export function AppButton({
   style,
   ...props
 }: AppButtonProps) {
+  const [scale] = useState(() => new Animated.Value(1));
+  const theme = useTheme();
   return (
-    <Pressable
-      accessibilityRole="button"
-      style={({ pressed, hovered }) => [
-        styles.button,
-        styles[variant],
-        pressed && styles.pressed,
-        typeof style === 'function' ? style({ pressed, hovered }) : style,
-      ]}
-      {...props}
-    >
-      <ThemedText
-        type="button"
-        themeColor={variant === 'primary' ? 'ink' : 'background'}
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable
+        accessibilityRole="button"
+        style={({ pressed, hovered }) => [
+          styles.button,
+          styles[variant],
+          { borderColor: theme.border },
+          variant === 'primary'
+            ? { backgroundColor: theme.buttonSecondary }
+            : variant === 'dark'
+              ? { backgroundColor: theme.buttonPrimary }
+              : { backgroundColor: theme.surface },
+          pressed && styles.pressed,
+          typeof style === 'function' ? style({ pressed, hovered }) : style,
+        ]}
+        {...props}
+        onPressIn={(event) => {
+          Animated.spring(scale, {
+            toValue: 0.98,
+            useNativeDriver: true,
+            speed: 30,
+            bounciness: 0,
+          }).start();
+          props.onPressIn?.(event);
+        }}
+        onPressOut={(event) => {
+          Animated.spring(scale, {
+            toValue: 1,
+            useNativeDriver: true,
+            speed: 30,
+            bounciness: 0,
+          }).start();
+          props.onPressOut?.(event);
+        }}
       >
-        {label}
-      </ThemedText>
-      <ThemedText
-        type="title"
-        themeColor={variant === 'primary' ? 'ink' : 'background'}
-        style={styles.arrow}
-      >
-        →
-      </ThemedText>
-    </Pressable>
+        <ThemedText
+          type="button"
+          themeColor={
+            variant === 'primary' ? 'textPrimary' : 'buttonPrimaryText'
+          }
+        >
+          {label}
+        </ThemedText>
+        <ThemedText
+          type="title"
+          themeColor={
+            variant === 'primary' ? 'textPrimary' : 'buttonPrimaryText'
+          }
+          style={styles.arrow}
+        >
+          →
+        </ThemedText>
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -51,14 +90,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1.5,
-    borderColor: Colors.light.line,
   },
-  primary: {
-    backgroundColor: Colors.light.green,
-    borderColor: Colors.light.green,
-  },
-  dark: { backgroundColor: Colors.light.ink },
-  outline: { backgroundColor: Colors.light.surface },
+  primary: {},
+  dark: {},
+  outline: {},
   arrow: { marginLeft: Spacing.four },
   pressed: { opacity: 0.7 },
 });

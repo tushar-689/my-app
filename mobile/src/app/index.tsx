@@ -3,10 +3,11 @@ import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { Colors } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { ONBOARDING_COMPLETE_KEY } from '@/features/onboarding/onboarding-storage';
 
 export default function LaunchRoute() {
+  const theme = useTheme();
   const [destination, setDestination] = useState<'onboarding' | 'home' | null>(
     null,
   );
@@ -23,7 +24,7 @@ export default function LaunchRoute() {
 
   return (
     <View style={styles.loading}>
-      <ActivityIndicator color={Colors.light.greenDark} />
+      <ActivityIndicator color={theme.greenDark} />
     </View>
   );
 }
@@ -33,6 +34,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.light.background,
   },
 });

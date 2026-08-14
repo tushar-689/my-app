@@ -5,7 +5,8 @@ import { AppScreen } from '@/components/ui/app-screen';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { SectionTabs } from '@/components/ui/section-tabs';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Colors, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { loadPracticeHistory } from '@/features/practice/history/practice-history';
 import {
   evaluateAchievements,
@@ -13,6 +14,7 @@ import {
 } from '@/features/progress/achievements';
 
 export default function AchievementsRoute() {
+  const theme = useTheme();
   const [filter, setFilter] = useState('All');
   const [items, setItems] = useState<Achievement[]>([]);
   useEffect(() => {
@@ -42,7 +44,7 @@ export default function AchievementsRoute() {
       {visible.map((item) => (
         <AppCard
           key={item.id}
-          color={item.unlocked ? 'green' : undefined}
+          color={item.unlocked ? 'accentGreen' : undefined}
           style={styles.card}
         >
           <ThemedText type="label">
@@ -53,7 +55,7 @@ export default function AchievementsRoute() {
           {item.progress && (
             <ProgressBar
               value={(item.progress.current / item.progress.target) * 100}
-              color={item.unlocked ? Colors.light.ink : Colors.light.purple}
+              color={item.unlocked ? theme.textPrimary : theme.accentPurple}
             />
           )}{' '}
         </AppCard>
